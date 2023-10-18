@@ -1,5 +1,5 @@
-#include "curl/curl.h"
 #include "PluginEditor.h"
+#include "onnxruntime_cxx_api.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p)
@@ -36,12 +36,10 @@ void PluginEditor::paint (juce::Graphics& g)
     auto area = getLocalBounds();
     g.setColour (juce::Colours::white);
     g.setFont (16.0f);
-
-    curl_version_info_data* data = curl_version_info(CURLVERSION_NOW);
-    auto curlVersion = juce::String(data->version);
-
-    auto helloWorld = juce::String ("Hello from ") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " running in " + CMAKE_BUILD_TYPE + " with curl: " + curlVersion;
+    auto helloWorld = juce::String ("Hello from ") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " running in " + CMAKE_BUILD_TYPE;
     g.drawText (helloWorld, area.removeFromTop (150), juce::Justification::centred, false);
+
+    Ort::SessionOptions sessionOptions = Ort::SessionOptions();
 }
 
 void PluginEditor::resized()

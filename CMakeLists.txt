@@ -104,21 +104,31 @@ include(Assets)
 include(XcodePrettify)
 
 if(WIN32)
-    set(CURL_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libcurl-x64")
+    # set(CURL_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libcurl-x64")
 
-    add_library(libcurl SHARED IMPORTED)
-    set_target_properties(libcurl PROPERTIES
-        IMPORTED_IMPLIB "${CURL_LIB_ROOT}/lib/libcurl.lib"
-        IMPORTED_LOCATION "${CURL_LIB_ROOT}/bin/libcurl.dll"
-        INTERFACE_INCLUDE_DIRECTORIES "${CURL_LIB_ROOT}/include"
+    # add_library(libcurl SHARED IMPORTED)
+    # set_target_properties(libcurl PROPERTIES
+    #     IMPORTED_IMPLIB "${CURL_LIB_ROOT}/lib/libcurl.lib"
+    #     IMPORTED_LOCATION "${CURL_LIB_ROOT}/bin/libcurl.dll"
+    #     INTERFACE_INCLUDE_DIRECTORIES "${CURL_LIB_ROOT}/include"
+    # )
+
+    # target_link_libraries(SharedCode INTERFACE libcurl)
+
+    set(ONNXRUNTIME_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/onnxruntime-x64")
+
+    add_library(onnxruntime SHARED IMPORTED)
+    set_target_properties(onnxruntime PROPERTIES
+        IMPORTED_IMPLIB "${ONNXRUNTIME_LIB_ROOT}/lib/onnxruntime.lib"
+        IMPORTED_LOCATION "${ONNXRUNTIME_LIB_ROOT}/lib/onnxruntime.dll"
+        INTERFACE_INCLUDE_DIRECTORIES "${ONNXRUNTIME_LIB_ROOT}/include"
     )
 
-    target_link_libraries(SharedCode INTERFACE libcurl)
+    target_link_libraries(SharedCode INTERFACE onnxruntime)
 
     add_custom_command(TARGET "${PROJECT_NAME}_Standalone" POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy -t "$<TARGET_FILE_DIR:${PROJECT_NAME}_Standalone>" "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_Standalone>"
     )
-
     add_custom_command(TARGET "${PROJECT_NAME}_VST3" POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy -t "$<TARGET_FILE_DIR:${PROJECT_NAME}_VST3>" "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>"
     )
@@ -165,14 +175,16 @@ target_link_libraries(SharedCode
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
+juce_enable_vst3_manifest_step("${PROJECT_NAME}")
+
 # IPP support, comment out to disable
 # include(PamplejuceIPP)
 
 # Everything related to the tests target
-# include(Tests)
+include(Tests)
 
 # A separate target keeps the Tests target fast!
-# include(Benchmarks)
+include(Benchmarks)
 
 # Pass some config to GA (like our PRODUCT_NAME)
 include(GitHubENV)
