@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include "onnxruntime_cxx_api.h"
+#include "httplib.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p)
@@ -36,7 +37,12 @@ void PluginEditor::paint (juce::Graphics& g)
     auto area = getLocalBounds();
     g.setColour (juce::Colours::white);
     g.setFont (16.0f);
-    auto helloWorld = juce::String ("Hello from ") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " running in " + CMAKE_BUILD_TYPE;
+
+    httplib::Client cli("http://cpp-httplib-server.yhirose.repl.co");
+    auto response = cli.Get("/");
+    auto helloWorld = juce::String(response->body);
+
+    // auto helloWorld = juce::String ("Hello from ") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " running in " + CMAKE_BUILD_TYPE;
     g.drawText (helloWorld, area.removeFromTop (150), juce::Justification::centred, false);
 
     Ort::SessionOptions sessionOptions = Ort::SessionOptions();

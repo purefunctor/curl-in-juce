@@ -134,6 +134,9 @@ if(WIN32)
     )
 endif()
 
+add_subdirectory(vendor)
+target_link_libraries(SharedCode INTERFACE VendorCode)
+
 # This is where you can set preprocessor definitions for JUCE and your plugin
 target_compile_definitions(SharedCode
     INTERFACE

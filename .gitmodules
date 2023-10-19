@@ -10,3 +10,6 @@
 	path = cmake
 	url = git@github.com:sudara/cmake-includes.git
 	branch = main
+[submodule "vendor/cpp-httplib"]
+	path = vendor/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib
