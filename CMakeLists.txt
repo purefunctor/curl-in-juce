@@ -63,7 +63,6 @@ juce_add_plugin("${PROJECT_NAME}"
     # On MacOS, plugin is copied to ~/Users/yourname/Library/Audio/Plug-Ins/
     COPY_PLUGIN_AFTER_BUILD FALSE
     VST3_AUTO_MANIFEST FALSE
-    NEEDS_CURL TRUE
 
     # Change me!
     # A four-character plugin id
@@ -105,25 +104,16 @@ include(Assets)
 include(XcodePrettify)
 
 if(WIN32)
-    # set(CURL_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libcurl-x64")
-
-    # add_library(libcurl SHARED IMPORTED)
-    # set_target_properties(libcurl PROPERTIES
-    #     IMPORTED_IMPLIB "${CURL_LIB_ROOT}/lib/libcurl.lib"
-    #     IMPORTED_LOCATION "${CURL_LIB_ROOT}/bin/libcurl.dll"
-    #     INTERFACE_INCLUDE_DIRECTORIES "${CURL_LIB_ROOT}/include"
-    # )
-
-    # target_link_libraries(SharedCode INTERFACE libcurl)
-
     set(CURL_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libcurl-x64")
 
-    find_library(LIBCURL_LIBRARY libcurl_a.lib PATHS "${CURL_LIB_ROOT}/lib")
-    target_link_libraries(SharedCode INTERFACE ${LIBCURL_LIBRARY})
-    target_link_libraries(SharedCode INTERFACE crypt32)
-    target_link_libraries(SharedCode INTERFACE wldap32)
-    target_link_libraries(SharedCode INTERFACE normaliz)
-    target_include_directories(SharedCode INTERFACE "${CURL_LIB_ROOT}/include")
+    add_library(libcurl SHARED IMPORTED)
+    set_target_properties(libcurl PROPERTIES
+        IMPORTED_IMPLIB "${CURL_LIB_ROOT}/lib/libcurl.lib"
+        IMPORTED_LOCATION "${CURL_LIB_ROOT}/bin/libcurl.dll"
+        INTERFACE_INCLUDE_DIRECTORIES "${CURL_LIB_ROOT}/include"
+    )
+
+    target_link_libraries(SharedCode INTERFACE libcurl)
 
     set(ONNXRUNTIME_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/onnxruntime-x64")
 
@@ -137,10 +127,15 @@ if(WIN32)
     target_link_libraries(SharedCode INTERFACE onnxruntime)
 
     add_custom_command(TARGET "${PROJECT_NAME}_Standalone" POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy -t "$<TARGET_FILE_DIR:${PROJECT_NAME}_Standalone>" "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_Standalone>"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_Standalone>" "$<TARGET_FILE_DIR:${PROJECT_NAME}_Standalone>" 
+        COMMAND_EXPAND_LISTS
     )
     add_custom_command(TARGET "${PROJECT_NAME}_VST3" POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy -t "$<TARGET_FILE_DIR:${PROJECT_NAME}_VST3>" "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>"
+        # This is a hack since "juce_vst3_helper.exe" needs to load these DLLs.
+        # Likewise, this also makes the "Tests" and "Benchmark" targets happy.
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>" "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>" "$<TARGET_FILE_DIR:${PROJECT_NAME}_VST3>" 
+        COMMAND_EXPAND_LISTS
     )
 endif()
 
@@ -162,8 +157,6 @@ target_compile_definitions(SharedCode
 
     # JucePlugin_Name is for some reason doesn't use the nicer PRODUCT_NAME
     PRODUCT_NAME_WITHOUT_VERSION="Pamplejuce"
-
-    CURL_STATICLIB=1
 )
 
 # Link to any other modules you added (with juce_add_module) here!
@@ -187,7 +180,7 @@ target_link_libraries(SharedCode
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
-# juce_enable_vst3_manifest_step("${PROJECT_NAME}")
+juce_enable_vst3_manifest_step("${PROJECT_NAME}")
 
 # IPP support, comment out to disable
 # include(PamplejuceIPP)
