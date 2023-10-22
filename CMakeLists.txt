@@ -63,6 +63,7 @@ juce_add_plugin("${PROJECT_NAME}"
     # On MacOS, plugin is copied to ~/Users/yourname/Library/Audio/Plug-Ins/
     COPY_PLUGIN_AFTER_BUILD FALSE
     VST3_AUTO_MANIFEST FALSE
+    NEEDS_CURL TRUE
 
     # Change me!
     # A four-character plugin id
@@ -115,6 +116,15 @@ if(WIN32)
 
     # target_link_libraries(SharedCode INTERFACE libcurl)
 
+    set(CURL_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libcurl-x64")
+
+    find_library(LIBCURL_LIBRARY libcurl_a.lib PATHS "${CURL_LIB_ROOT}/lib")
+    target_link_libraries(SharedCode INTERFACE ${LIBCURL_LIBRARY})
+    target_link_libraries(SharedCode INTERFACE crypt32)
+    target_link_libraries(SharedCode INTERFACE wldap32)
+    target_link_libraries(SharedCode INTERFACE normaliz)
+    target_include_directories(SharedCode INTERFACE "${CURL_LIB_ROOT}/include")
+
     set(ONNXRUNTIME_LIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/onnxruntime-x64")
 
     add_library(onnxruntime SHARED IMPORTED)
@@ -140,7 +150,7 @@ target_compile_definitions(SharedCode
 
     # JUCE_WEB_BROWSER and JUCE_USE_CURL off by default
     JUCE_WEB_BROWSER=0  # If you set this to 1, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
-    JUCE_USE_CURL=0     # If you set this to 1, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
+    JUCE_USE_CURL=1     # If you set this to 1, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     JUCE_VST3_CAN_REPLACE_VST2=0
 
     # Uncomment if you are paying for a an Indie/Pro license or releasing under GPLv3
@@ -152,6 +162,8 @@ target_compile_definitions(SharedCode
 
     # JucePlugin_Name is for some reason doesn't use the nicer PRODUCT_NAME
     PRODUCT_NAME_WITHOUT_VERSION="Pamplejuce"
+
+    CURL_STATICLIB=1
 )
 
 # Link to any other modules you added (with juce_add_module) here!
@@ -175,7 +187,7 @@ target_link_libraries(SharedCode
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
-juce_enable_vst3_manifest_step("${PROJECT_NAME}")
+# juce_enable_vst3_manifest_step("${PROJECT_NAME}")
 
 # IPP support, comment out to disable
 # include(PamplejuceIPP)
