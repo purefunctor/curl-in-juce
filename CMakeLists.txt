@@ -132,7 +132,6 @@ if(WIN32)
     )
     add_custom_command(TARGET "${PROJECT_NAME}_VST3" POST_BUILD
         # This is a hack since "juce_vst3_helper.exe" needs to load these DLLs.
-        # Likewise, this also makes the "Tests" and "Benchmark" targets happy.
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>" "${CMAKE_CURRENT_BINARY_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>" "$<TARGET_FILE_DIR:${PROJECT_NAME}_VST3>" 
         COMMAND_EXPAND_LISTS
@@ -180,7 +179,6 @@ target_link_libraries(SharedCode
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
-juce_enable_vst3_manifest_step("${PROJECT_NAME}")
 
 # IPP support, comment out to disable
 # include(PamplejuceIPP)
@@ -188,8 +186,15 @@ juce_enable_vst3_manifest_step("${PROJECT_NAME}")
 # Everything related to the tests target
 include(Tests)
 
+add_custom_command(TARGET Tests POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:Tests>" "$<TARGET_FILE_DIR:Tests>"
+    COMMAND_EXPAND_LISTS
+)
+
 # A separate target keeps the Tests target fast!
 include(Benchmarks)
 
 # Pass some config to GA (like our PRODUCT_NAME)
 include(GitHubENV)
+
+juce_enable_vst3_manifest_step("${PROJECT_NAME}")
