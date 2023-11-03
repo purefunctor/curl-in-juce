@@ -136,6 +136,12 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>" "$<TARGET_FILE_DIR:${PROJECT_NAME}_VST3>" 
         COMMAND_EXPAND_LISTS
     )
+
+    # Another hack to make Benchmarks.exe/Tests.exe happy.
+    add_custom_command(TARGET "${PROJECT_NAME}" PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}_VST3>" "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND_EXPAND_LISTS
+    )
 endif()
 
 # This is where you can set preprocessor definitions for JUCE and your plugin
@@ -186,10 +192,10 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 # Everything related to the tests target
 include(Tests)
 
-add_custom_command(TARGET Tests POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:Tests>" "$<TARGET_FILE_DIR:Tests>"
-    COMMAND_EXPAND_LISTS
-)
+# add_custom_command(TARGET Tests POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_RUNTIME_DLLS:Tests>" "$<TARGET_FILE_DIR:Tests>"
+#     COMMAND_EXPAND_LISTS
+# )
 
 # A separate target keeps the Tests target fast!
 include(Benchmarks)
